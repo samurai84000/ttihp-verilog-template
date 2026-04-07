@@ -4,6 +4,11 @@ on:
   push:
   workflow_dispatch:
 
+# Setting this globally ensures all actions (checkout, cache, etc.) 
+# use the Node.js 24 runtime immediately.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   gds:
     runs-on: ubuntu-24.04
@@ -42,7 +47,8 @@ jobs:
     needs: gds
     runs-on: ubuntu-24.04
     permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
     steps:
-      - uses: TinyTapeout/tt-gds-action/viewer@ttihp26a
+      - name: GDS Viewer
+        uses: TinyTapeout/tt-gds-action/viewer@ttihp26a
