@@ -20,10 +20,9 @@ module tt_um_top (
 
     // 3. Bidirectional Pin Configuration
     // Since we are using uio as inputs for the ADC, we set Output Enable to 0
-    assign uio_oe  = 8'b00000000; 
-    assign uio_out = 8'b00000000;
+    assign uio_oe = 8'b00000011; 
+    assign uio_out[7:2] = 6'b000000; // Drive unused bits low
 
-    // 4. Instantiate your System Logic
     top user_project (
         .clk(clk),
         .rst(rst),
@@ -39,7 +38,9 @@ module tt_um_top (
         .adc_conv_start(uo_out[4]),
         .en_sensor_vcc(uo_out[5]),
         .en_radio_vcc(uo_out[6]),
-        .ana_ctrl(uo_out[7]) // Map only the available bit uo_out[7]
+        
+        // Split the 3-bit bus across the available pins
+        .ana_ctrl({uio_out[1], uio_out[0], uo_out[7]}) 
     );
 
 endmodule
