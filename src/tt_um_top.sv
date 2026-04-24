@@ -12,7 +12,8 @@ module tt_um_top (
 
 
     input  logic       ena,      // This is the missing 'ena' port!
-    input  logic       rst_n     // reset_n - low to reset
+    input  logic       rst_n,     // reset_n - low to reset
+    input logic ui_in
 );
 
     // --- Internal Handshake Wires ---
