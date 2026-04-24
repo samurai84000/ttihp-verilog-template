@@ -9,19 +9,18 @@ module tt_um_top (
     input  logic       rst_n     // reset_n - low to reset
 );
 
-    // 1. Reset Logic: Invert the active-low rst_n for your active-high logic
+    // 1. Reset Logic: Invert the active-low rst_n
     logic rst;
     assign rst = !rst_n;
 
     // 2. Mapping the 12-bit ADC Data
-    // We use the 8 bidirectional pins (uio_in) and 4 dedicated inputs (ui_in)
     logic [11:0] combined_adc_data;
     assign combined_adc_data = {uio_in[7:0], ui_in[7:4]};
 
     // 3. Bidirectional Pin Configuration
-    // Since we are using uio as inputs for the ADC, we set Output Enable to 0
+    // uio[0] and uio[1] are outputs for ana_ctrl. uio[7:2] are inputs for ADC.
     assign uio_oe = 8'b00000011; 
-    assign uio_out[7:2] = 6'b000000; // Drive unused bits low
+    assign uio_out[7:2] = 6'b000000; 
 
     top user_project (
         .clk(clk),
@@ -30,7 +29,6 @@ module tt_um_top (
         .adc_EOC(ui_in[2]),
         .MISO(ui_in[3]),
         .adc_data(combined_adc_data),
-
         .spi_clk(uo_out[0]),
         .MOSI(uo_out[1]),
         .FRAM_cs(uo_out[2]),
@@ -38,8 +36,8 @@ module tt_um_top (
         .adc_conv_start(uo_out[4]),
         .en_sensor_vcc(uo_out[5]),
         .en_radio_vcc(uo_out[6]),
-        
+        // Fix: Map the 3-bit bus to the available pins
+        .ana_ctrl({uio_out[1], uio_out[0], uo_out[7]}) 
     );
 
 endmodule
-
