@@ -16,24 +16,24 @@ module spi_master_mode0 (
         IDLE, ASSERT_CS, LOAD_BIT, SCLK_LOW, SCLK_HIGH, NEXT_BIT, FINISH
     } state_t; [cite: 9]
 
-    state_t state, next_state; [cite: 10]
+    state_t state, next_state; 
     logic [7:0] shift_reg;
     logic [7:0] recv_reg;
     logic [2:0] bit_cnt;
     logic [1:0] clk_div;
     logic       tick;
 
-    assign tick = (clk_div == 2'b11); [cite: 12]
+    assign tick = (clk_div == 2'b11); 
 
     always_ff @(posedge clk or posedge rst) begin
-        if (rst) clk_div <= 2'b00; [cite: 13]
+        if (rst) clk_div <= 2'b00; 
         else     clk_div <= clk_div + 2'b01;
     end
 
     // FSM Sequential Logic
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            state    <= IDLE; [cite: 15]
+            state    <= IDLE; 
             sclk     <= 1'b0;
             cs       <= 1'b1;
             done     <= 1'b0;
@@ -42,12 +42,12 @@ module spi_master_mode0 (
             recv_reg  <= 8'h00;
             bit_cnt   <= 3'd0;
         end else if (tick) begin
-            state <= next_state; [cite: 17]
+            state <= next_state; 
 
             case (state)
-                IDLE:      done <= 1'b0; [cite: 18]
+                IDLE:      done <= 1'b0; 
                 
-                ASSERT_CS: begin [cite: 19]
+                ASSERT_CS: begin
                     cs        <= 1'b0;
                     shift_reg <= data2send;
                     bit_cnt   <= 3'd7;
@@ -57,17 +57,17 @@ module spi_master_mode0 (
                 
                 SCLK_LOW:  sclk <= 1'b0;
                 
-                SCLK_HIGH: begin [cite: 21-22]
+                SCLK_HIGH: begin 
                     sclk     <= 1'b1;
                     recv_reg <= {recv_reg[6:0], miso};
                 end
 
-                NEXT_BIT: begin [cite: 23]
+                NEXT_BIT: begin 
                     shift_reg <= {shift_reg[6:0], 1'b0};
                     bit_cnt   <= bit_cnt - 3'd1;
                 end
 
-                FINISH: begin [cite: 24]
+                FINISH: begin 
                     cs   <= 1'b1;
                     sclk <= 1'b0;
                     done <= 1'b1;
@@ -80,15 +80,15 @@ module spi_master_mode0 (
 
     // FSM Combinational Logic
     always_comb begin
-        next_state = state; [cite: 25]
+        next_state = state;
         case (state)
-            IDLE:      next_state = start ? ASSERT_CS : IDLE; [cite: 26-27]
+            IDLE:      next_state = start ? ASSERT_CS : IDLE;
             ASSERT_CS: next_state = LOAD_BIT;
             LOAD_BIT:  next_state = SCLK_LOW;
             SCLK_LOW:  next_state = SCLK_HIGH;
-            SCLK_HIGH: next_state = NEXT_BIT; [cite: 28]
+            SCLK_HIGH: next_state = NEXT_BIT; 
             NEXT_BIT:  next_state = (bit_cnt == 3'd0) ? FINISH : LOAD_BIT;
-            FINISH:    next_state = IDLE; [cite: 29]
+            FINISH:    next_state = IDLE; 
             default:   next_state = IDLE;
         endcase
     end
