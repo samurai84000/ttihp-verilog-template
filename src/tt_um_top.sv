@@ -1,4 +1,4 @@
-module top (
+module tt_um_top (
     input  logic rst, clk, wakeup,
     input  logic adc_EOC,
     input  logic [11:0] adc_data,
