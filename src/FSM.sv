@@ -173,7 +173,7 @@ module FSM #(
                 spi_tx_byte  = data_buffer[buf_ptr]; 
                 spi_start    = 1'b1;
                 if (spi_done) begin 
-                    if (buf_ptr == 511 || read_ptr >= fram_addr_ptr)
+                    if (buf_ptr == 4'd15 || read_ptr >= fram_addr_ptr)
                         next_state = ST_SHUTDOWN;
                     else
                         next_state = ST_LORA_FILL_BUF;
