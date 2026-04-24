@@ -8,7 +8,10 @@ module tt_um_top (
     
     // Physical SPI Pins
     output logic spi_clk, MOSI, FRAM_cs, LoRA_cs,
-    input  logic MISO
+    input  logic MISO,
+
+
+    input  logic       ena      // This is the missing 'ena' port!
 );
 
     // --- Internal Handshake Wires ---
