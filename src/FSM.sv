@@ -38,7 +38,7 @@ module FSM #(
             fram_addr_ptr  <= 16'd0;
             read_ptr       <= 16'd0;
             byte_step      <= 2'd0;
-            buf_ptr        <= 9'd0;
+            buf_ptr        <= 4'd0;
             temp_reg       <= {ADC_WIDTH{1'b0}};
             soil_reg       <= {ADC_WIDTH{1'b0}};
             vBat_reg       <= {ADC_WIDTH{1'b0}};
@@ -70,12 +70,12 @@ module FSM #(
             // Capture logic for LoRa fill 
             if (curr_state == ST_LORA_FILL_BUF && spi_done) begin
                 data_buffer[buf_ptr] <= spi_rx_byte;
-                buf_ptr  <= buf_ptr + 9'd1;
+                buf_ptr  <= buf_ptr + 4'd1;
                 read_ptr <= read_ptr + 16'd1;
             end
 
             if (curr_state == ST_SHUTDOWN) begin
-                buf_ptr <= 9'd0;
+                buf_ptr <= 4'd0;
             end
         end
     end
