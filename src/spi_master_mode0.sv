@@ -14,7 +14,7 @@ module spi_master_mode0 (
 
     typedef enum logic [2:0] {
         IDLE, ASSERT_CS, LOAD_BIT, SCLK_LOW, SCLK_HIGH, NEXT_BIT, FINISH
-    } state_t; [cite: 9]
+    } state_t; 
 
     state_t state, next_state; 
     logic [7:0] shift_reg;
