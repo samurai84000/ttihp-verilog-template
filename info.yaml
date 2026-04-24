@@ -22,6 +22,8 @@ project:
     - "FSM.sv"
     - "top.sv"           # This is the file Verilator is looking for!
 
+
+  pl_target_density: 0.70
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
