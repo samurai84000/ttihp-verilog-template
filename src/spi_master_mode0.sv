@@ -71,6 +71,8 @@ module spi_master_mode0 (
                     sclk <= 1'b0; // FIX: Return clock to Idle 0
                     done <= 1'b1;
                 end
+
+                default:   next_state = IDLE; // Add this!
             endcase
         end
     end
