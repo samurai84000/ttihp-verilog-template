@@ -6,6 +6,9 @@ on:
     branches: none
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   fpga:
     runs-on: ubuntu-24.04
