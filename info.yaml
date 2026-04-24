@@ -20,6 +20,7 @@ project:
     - "tt_um_top.sv"
     - "spi_master_mode0.sv"
     - "FSM.sv"
+    - "top.sv"           # This is the file Verilator is looking for!
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
