@@ -27,19 +27,19 @@ module tt_um_top (
     top user_project (
         .clk(clk),
         .rst(rst),
-        .wakeup(ui_in[1]),       // Input 1
-        .adc_EOC(ui_in[2]),      // Input 2
-        .MISO(ui_in[3]),         // Input 3
+        .wakeup(ui_in[1]),
+        .adc_EOC(ui_in[2]),
+        .MISO(ui_in[3]),
         .adc_data(combined_adc_data),
 
-        .spi_clk(uo_out[0]),     // Output 0
-        .MOSI(uo_out[1]),        // Output 1
-        .FRAM_cs(uo_out[2]),     // Output 2
-        .LoRA_cs(uo_out[3]),     // Output 3
-        .adc_conv_start(uo_out[4]), // Output 4
-        .en_sensor_vcc(uo_out[5]),  // Output 5
-        .en_radio_vcc(uo_out[6]),   // Output 6
-        .ana_ctrl(uo_out[7:5])      // Outputs 5, 6, 7 (shared)
+        .spi_clk(uo_out[0]),
+        .MOSI(uo_out[1]),
+        .FRAM_cs(uo_out[2]),
+        .LoRA_cs(uo_out[3]),
+        .adc_conv_start(uo_out[4]),
+        .en_sensor_vcc(uo_out[5]),
+        .en_radio_vcc(uo_out[6]),
+        .ana_ctrl(uo_out[7]) // Map only the available bit uo_out[7]
     );
 
 endmodule
