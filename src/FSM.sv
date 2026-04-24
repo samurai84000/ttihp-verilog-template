@@ -27,8 +27,8 @@ module FSM #(
     state_t curr_state, next_state;
     logic [ADC_WIDTH-1:0] temp_reg, soil_reg, vBat_reg, cSolar_reg;
     logic [7:0] data_buffer [0:15];
-    logic [3:0] fram_addr_ptr, read_ptr;
-    logic [8:0] buf_ptr;
+    logic [15:0] fram_addr_ptr, read_ptr;
+    logic [3:0] buf_ptr;
     logic [1:0] byte_step;
 
     // --- Sequential Logic: State, Pointers, and Data Latching ---
