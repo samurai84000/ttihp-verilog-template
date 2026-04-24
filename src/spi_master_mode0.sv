@@ -68,7 +68,49 @@ module spi_master_mode0 (
 
                 FINISH: begin
                     cs   <= 1'b1;
-                    sclk <= 1'b0; // FIX: Return clock to Idle 0
+                    sclk <= 1'b0; // FIX: Return clock to Idle always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            state <= IDLE;
+            sclk  <= 1'b0;
+            cs    <= 1'b1;
+            done  <= 1'b0;
+        end else if (tick) begin 
+            state <= next_state;
+
+            case (state)
+                IDLE:      done <= 1'b0;
+                
+                ASSERT_CS: begin
+                    cs        <= 1'b0;
+                    shift_reg <= data2send;
+                    bit_cnt   <= 3'd7;
+                end
+
+                LOAD_BIT:  mosi <= shift_reg[7];
+                
+                SCLK_LOW:  sclk <= 1'b0;
+                
+                SCLK_HIGH: begin
+                    sclk <= 1'b1;
+                    recv_reg <= {recv_reg[6:0], miso};
+                end
+
+                NEXT_BIT: begin
+                    shift_reg <= {shift_reg[6:0], 1'b0};
+                    bit_cnt   <= bit_cnt - 1;
+                end
+
+                FINISH: begin
+                    cs   <= 1'b1;
+                    sclk <= 1'b0;
+                    done <= 1'b1;
+                end
+
+                // CORRECT SYNTAX: Use non-blocking assignment to 'state'
+                default: state <= IDLE; 
+            endcase
+        end
+    end
                     done <= 1'b1;
                 end
 
