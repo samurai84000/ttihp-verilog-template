@@ -162,7 +162,7 @@ module FSM #(
                 spi_tx_byte  = 8'hFF;
                 spi_start    = 1'b1;
                 if (spi_done) begin 
-                    if (buf_ptr == 511 || read_ptr >= (fram_addr_ptr - 16'd1))
+                    if (buf_ptr == 4'd15 || read_ptr >= (fram_addr_ptr - 16'd1))
                         next_state = ST_LORA_TRANSMIT;
                 end
             end
