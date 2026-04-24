@@ -31,23 +31,22 @@ module FSM #(
     logic [8:0] buf_ptr;
     logic [1:0] byte_step;
 
-    // --- Sequential: Pointers, Latching, and State Transitions ---
+    // --- Sequential Logic: State, Pointers, and Data Latching ---
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             curr_state     <= ST_RESET;
-            fram_addr_ptr  <= 0;
-            read_ptr       <= 0;
-            byte_step      <= 0;
-            buf_ptr        <= 0;
-            temp_reg       <= 0;
-            soil_reg       <= 0;
-            vBat_reg       <= 0;
-            cSolar_reg     <= 0;
+            fram_addr_ptr  <= 16'd0;
+            read_ptr       <= 16'd0;
+            byte_step      <= 2'd0;
+            buf_ptr        <= 9'd0;
+            temp_reg       <= {ADC_WIDTH{1'b0}};
+            soil_reg       <= {ADC_WIDTH{1'b0}};
+            vBat_reg       <= {ADC_WIDTH{1'b0}};
+            cSolar_reg     <= {ADC_WIDTH{1'b0}};
         end else begin
             curr_state <= next_state;
 
-            // --- NEW: ADC Latching Logic ---
-            // This connects the 'undriven' registers to the adc_data bus
+            // ADC Latching: Captures data from the bus into registers [cite: 31, 34]
             if (adc_EOC) begin
                 case (curr_state)
                     ST_READ_TEMP: temp_reg   <= adc_data;
@@ -58,33 +57,32 @@ module FSM #(
                 endcase
             end
 
-            // Increment logic for 3-byte FRAM write
+            // Increment logic for 3-byte FRAM write [cite: 37-38]
             if (curr_state == ST_FRAM_WRITE && spi_done) begin
                 if (byte_step == 2'd2) begin
-                    byte_step <= 0;
+                    byte_step <= 2'd0;
                     fram_addr_ptr <= fram_addr_ptr + 16'd3;
                 end else begin
                     byte_step <= byte_step + 2'd1;
                 end
             end
 
-            // Capture logic for LoRa fill
+            // Capture logic for LoRa fill [cite: 39-40]
             if (curr_state == ST_LORA_FILL_BUF && spi_done) begin
                 data_buffer[buf_ptr] <= spi_rx_byte;
                 buf_ptr  <= buf_ptr + 9'd1;
                 read_ptr <= read_ptr + 16'd1;
             end
-            
-            // Reset buffer pointer when starting a fresh transmit phase
+
             if (curr_state == ST_SHUTDOWN) begin
-                buf_ptr <= 0;
+                buf_ptr <= 9'd0;
             end
         end
     end
 
-    // --- Combinational: Control Signals ---
+    // --- Combinational Logic: Control Signals ---
     always_comb begin
-        // Default Assignments to prevent Latches
+        // Default assignments to prevent latches [cite: 41-46]
         next_state     = curr_state;
         adc_conv_start = 1'b0;
         ana_ctrl       = 3'b000;
@@ -97,91 +95,84 @@ module FSM #(
 
         case (curr_state)
             ST_RESET:    next_state = ST_SHUTDOWN;
-            ST_SHUTDOWN: if (wakeup) next_state = ST_READ_TEMP;
+            ST_SHUTDOWN: if (wakeup) next_state = ST_READ_TEMP; [cite: 47]
 
-            // --- ADC Scan Sequence ---
             ST_READ_TEMP: begin
                 en_sensor_vcc  = 1'b1;
                 ana_ctrl       = 3'b000;
                 adc_conv_start = 1'b1;
-                if (adc_EOC) next_state = ST_READ_SOIL;
+                if (adc_EOC) next_state = ST_READ_SOIL; [cite: 48]
             end
 
             ST_READ_SOIL: begin
                 en_sensor_vcc  = 1'b1;
                 ana_ctrl       = 3'b001;
                 adc_conv_start = 1'b1;
-                if (adc_EOC) next_state = ST_READ_CSOL;
+                if (adc_EOC) next_state = ST_READ_CSOL; [cite: 50]
             end
 
             ST_READ_CSOL: begin
                 en_sensor_vcc  = 1'b1;
                 ana_ctrl       = 3'b010;
                 adc_conv_start = 1'b1;
-                if (adc_EOC) next_state = ST_READ_VSOL;
+                if (adc_EOC) next_state = ST_READ_VSOL; [cite: 52]
             end
 
             ST_READ_VSOL: begin
                 en_sensor_vcc  = 1'b1;
                 ana_ctrl       = 3'b011;
                 adc_conv_start = 1'b1;
-                if (adc_EOC) next_state = ST_READ_VBAT;
+                if (adc_EOC) next_state = ST_READ_VBAT; [cite: 54]
             end
 
             ST_READ_VBAT: begin
                 en_sensor_vcc  = 1'b1;
                 ana_ctrl       = 3'b100;
                 adc_conv_start = 1'b1;
-                if (adc_EOC) next_state = ST_DECIDE;
+                if (adc_EOC) next_state = ST_DECIDE; [cite: 56]
             end
 
-            // --- Decision Logic ---
             ST_DECIDE: begin
                 en_sensor_vcc = 1'b1;
-                if (vBat_reg < VBAT_CRIT) begin
+                if (vBat_reg < VBAT_CRIT) begin [cite: 58]
                     next_state = ST_SHUTDOWN;
-                end else if (cSolar_reg >= SUNNY_THRESH && fram_addr_ptr > 0) begin
+                end else if (cSolar_reg >= SUNNY_THRESH && fram_addr_ptr > 0) begin [cite: 59]
                     next_state = ST_LORA_FILL_BUF;
                 end else begin
-                    next_state = ST_FRAM_WRITE;
+                    next_state = ST_FRAM_WRITE; [cite: 60]
                 end
             end
 
-            // --- Sensor Packing to FRAM (3-Byte sequence) ---
             ST_FRAM_WRITE: begin
                 en_radio_vcc = 1'b1;
                 FRAM_cs      = master_cs; 
                 spi_start    = 1'b1;
-                case(byte_step)
+                case(byte_step) [cite: 63-65]
                     2'd0: spi_tx_byte = temp_reg[11:4];
                     2'd1: spi_tx_byte = {temp_reg[3:0], soil_reg[11:8]};
                     2'd2: spi_tx_byte = soil_reg[7:0];
                     default: spi_tx_byte = 8'h00;
                 endcase
-
                 if (spi_done && byte_step == 2'd2) next_state = ST_SHUTDOWN;
             end
 
-            // --- LoRa Phase 1: Reading from FRAM into Buffer ---
             ST_LORA_FILL_BUF: begin
                 en_radio_vcc = 1'b1;
                 FRAM_cs      = master_cs;
                 spi_tx_byte  = 8'hFF;
                 spi_start    = 1'b1;
-                if (spi_done) begin
+                if (spi_done) begin [cite: 69]
                     if (buf_ptr == 511 || read_ptr >= (fram_addr_ptr - 16'd1))
                         next_state = ST_LORA_TRANSMIT;
                 end
             end
 
-            // --- LoRa Phase 2: Transmitting Buffer to Radio ---
             ST_LORA_TRANSMIT: begin
                 en_radio_vcc = 1'b1;
                 LoRA_cs      = master_cs; 
-                spi_tx_byte  = data_buffer[buf_ptr];
+                spi_tx_byte  = data_buffer[buf_ptr]; [cite: 71]
                 spi_start    = 1'b1;
-
-                if (spi_done) begin
+                if (spi_done) begin [cite: 72]
                     if (buf_ptr == 511 || read_ptr >= fram_addr_ptr)
                         next_state = ST_SHUTDOWN;
                     else
@@ -189,7 +180,7 @@ module FSM #(
                 end
             end
 
-            default: next_state = ST_SHUTDOWN;
+            default: next_state = ST_SHUTDOWN; [cite: 74]
         endcase
     end
 endmodule
