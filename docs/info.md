@@ -9,12 +9,12 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+This project is simply a replacement for a microcontroller we use for our soil sensing research. This removes a large amount of the hardware we were not using and in turn saves us a lot of power.
 
 ## How to test
 
-Explain how to use your project
+To test jjust update through actions, also I have a testbench for testing the systemverilog
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+No external hrdware is required for this project currently
